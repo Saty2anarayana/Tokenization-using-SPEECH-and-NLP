@@ -1,0 +1,695 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NLP Tokenization Tool</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --accent: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --success: #2ecc71;
+            --info: #3498db;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f7fa;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: var(--secondary);
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+        
+        .row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .row {
+                flex-direction: column;
+            }
+        }
+        
+        .col {
+            flex: 1;
+        }
+        
+        .input-section, .output-section {
+            margin-bottom: 20px;
+        }
+        
+        .controls {
+            margin-bottom: 20px;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: inherit;
+            font-size: 1rem;
+            resize: vertical;
+        }
+        
+        select, button {
+            padding: 10px 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        
+        select {
+            background-color: white;
+        }
+        
+        button {
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            transition: background-color 0.3s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        button:hover {
+            background-color: var(--primary);
+        }
+        
+        .token-count {
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        
+        .result-container {
+            height: 250px;
+            overflow-y: auto;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        
+        .token {
+            display: inline-block;
+            background-color: var(--light);
+            border: 1px solid var(--secondary);
+            border-radius: 3px;
+            padding: 3px 8px;
+            margin: 3px;
+            color: var(--dark);
+            font-size: 14px;
+        }
+        
+        .tab-container {
+            margin-bottom: 20px;
+        }
+        
+        .tab-buttons {
+            display: flex;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .tab-btn {
+            padding: 10px 20px;
+            background-color: #eee;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+        
+        .tab-btn.active {
+            background-color: var(--secondary);
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 0 5px 5px 5px;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #777;
+            font-size: 0.9rem;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: var(--secondary);
+            color: white;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--secondary);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 2s linear infinite;
+            margin: 20px auto;
+            display: none;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            color: var(--danger);
+            margin: 10px 0;
+        }
+        
+        /* Speech Recognition Styles */
+        .speech-container {
+            margin: 15px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        
+        .speech-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            margin: 10px auto;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .speech-button:hover {
+            background-color: var(--primary);
+        }
+        
+        .speech-button i {
+            font-size: 24px;
+        }
+        
+        .speech-button.recording {
+            background-color: var(--danger);
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .speech-status {
+            text-align: center;
+            margin: 10px 0;
+            font-weight: bold;
+            color: var(--primary);
+        }
+        
+        /* Mic icon */
+        .mic-icon {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>NLP Text Tokenization Tool</h1>
+            <div class="subtitle">Analyze and tokenize text using different NLP techniques</div>
+        </header>
+        
+        <div class="input-section">
+            <h2>Input Text</h2>
+            <textarea id="input-text" placeholder="Enter text to tokenize and analyze...">Natural language processing (NLP) is a subfield of linguistics, computer science, and artificial intelligence concerned with the interactions between computers and human language, in particular how to program computers to process and analyze large amounts of natural language data.</textarea>
+            
+            <!-- Speech Recognition Section -->
+            <div class="speech-container">
+                <h3>Speech Input</h3>
+                <p>Click the microphone button and speak to convert your speech to text</p>
+                <button id="speech-btn" class="speech-button">
+                    <svg class="mic-icon" viewBox="0 0 24 24">
+                        <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"></path>
+                        <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"></path>
+                    </svg>
+                </button>
+                <div id="speech-status" class="speech-status">Ready</div>
+            </div>
+            
+            <div class="controls">
+                <div class="row">
+                    <div class="col">
+                        <h3>Tokenization Method</h3>
+                        <select id="tokenize-method">
+                            <option value="nltk_word">NLTK Word Tokenization</option>
+                            <option value="nltk_sentence">NLTK Sentence Tokenization</option>
+                            <option value="spacy">spaCy Tokenization</option>
+                            <option value="regex_word">Regex Word Tokenization</option>
+                            <option value="regex_sentence">Regex Sentence Tokenization</option>
+                            <option value="speech">Speech Tokenization</option>
+                        </select>
+                    </div>
+                    <div class="col">
+                        <h3>Actions</h3>
+                        <button id="tokenize-btn">Tokenize Text</button>
+                        <button id="analyze-btn">Full Analysis</button>
+                        <button id="clear-btn">Clear Text</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="loader" id="loader"></div>
+        <div class="error" id="error-message"></div>
+        
+        <div class="output-section">
+            <div class="tab-container">
+                <div class="tab-buttons">
+                    <button class="tab-btn active" data-tab="tokens">Tokens</button>
+                    <button class="tab-btn" data-tab="entities">Named Entities</button>
+                    <button class="tab-btn" data-tab="pos">Part of Speech</button>
+                    <button class="tab-btn" data-tab="frequency">Word Frequency</button>
+                </div>
+                
+                <div class="tab-content active" id="tokens-tab">
+                    <div class="token-count" id="token-count">No tokens yet</div>
+                    <div class="result-container" id="tokens-container"></div>
+                </div>
+                
+                <div class="tab-content" id="entities-tab">
+                    <div class="result-container">
+                        <table id="entities-table">
+                            <thead>
+                                <tr>
+                                    <th>Text</th>
+                                    <th>Entity Type</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="pos-tab">
+                    <div class="result-container">
+                        <table id="pos-table">
+                            <thead>
+                                <tr>
+                                    <th>Token</th>
+                                    <th>Part of Speech</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="frequency-tab">
+                    <div class="result-container">
+                        <table id="frequency-table">
+                            <thead>
+                                <tr>
+                                    <th>Word</th>
+                                    <th>Frequency</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Natural Language Processing Tokenization Tool | Built with Python, Flask, NLTK, spaCy</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM elements
+            const inputText = document.getElementById('input-text');
+            const tokenizeMethod = document.getElementById('tokenize-method');
+            const tokenizeBtn = document.getElementById('tokenize-btn');
+            const analyzeBtn = document.getElementById('analyze-btn');
+            const clearBtn = document.getElementById('clear-btn');
+            const tokenCount = document.getElementById('token-count');
+            const tokensContainer = document.getElementById('tokens-container');
+            const entitiesTable = document.getElementById('entities-table').querySelector('tbody');
+            const posTable = document.getElementById('pos-table').querySelector('tbody');
+            const frequencyTable = document.getElementById('frequency-table').querySelector('tbody');
+            const loader = document.getElementById('loader');
+            const errorMsg = document.getElementById('error-message');
+            const speechBtn = document.getElementById('speech-btn');
+            const speechStatus = document.getElementById('speech-status');
+            
+            // Check if speech recognition is supported
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            let recognition;
+            let isRecording = false;
+            
+            if (SpeechRecognition) {
+                recognition = new SpeechRecognition();
+                recognition.continuous = false;
+                recognition.lang = 'en-US';
+                recognition.interimResults = false;
+                recognition.maxAlternatives = 1;
+                
+                recognition.onstart = function() {
+                    isRecording = true;
+                    speechBtn.classList.add('recording');
+                    speechStatus.textContent = 'Listening...';
+                };
+                
+                recognition.onresult = function(event) {
+                    const transcript = event.results[0][0].transcript;
+                    speechStatus.textContent = 'Processing speech...';
+                    
+                    // Add the transcript to the textarea
+                    inputText.value = transcript;
+                    
+                    // If speech tokenization is selected, automatically tokenize
+                    if (tokenizeMethod.value === 'speech') {
+                        tokenizeBtn.click();
+                    }
+                    
+                    speechStatus.textContent = 'Speech captured!';
+                };
+                
+                recognition.onend = function() {
+                    isRecording = false;
+                    speechBtn.classList.remove('recording');
+                    if (speechStatus.textContent === 'Listening...') {
+                        speechStatus.textContent = 'No speech detected. Try again.';
+                    }
+                };
+                
+                recognition.onerror = function(event) {
+                    isRecording = false;
+                    speechBtn.classList.remove('recording');
+                    speechStatus.textContent = 'Error: ' + event.error;
+                };
+                
+                // Speech button click event
+                speechBtn.addEventListener('click', function() {
+                    if (!isRecording) {
+                        recognition.start();
+                    } else {
+                        recognition.stop();
+                    }
+                });
+            } else {
+                // Speech recognition not supported
+                speechBtn.disabled = true;
+                speechStatus.textContent = 'Speech recognition not supported in this browser';
+                speechBtn.style.backgroundColor = '#ccc';
+                
+                // Remove speech option from dropdown
+                const speechOption = document.querySelector('option[value="speech"]');
+                if (speechOption) {
+                    speechOption.remove();
+                }
+            }
+            
+            // Clear button click event
+            clearBtn.addEventListener('click', function() {
+                inputText.value = '';
+                errorMsg.textContent = '';
+            });
+            
+            // Tab functionality
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Remove active class from all buttons and contents
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    // Add active class to current button
+                    this.classList.add('active');
+                    
+                    // Show corresponding content
+                    const tabId = this.getAttribute('data-tab');
+                    document.getElementById(`${tabId}-tab`).classList.add('active');
+                });
+            });
+            
+            // Tokenize function
+            tokenizeBtn.addEventListener('click', function() {
+                const text = inputText.value.trim();
+                const method = tokenizeMethod.value;
+                
+                if (!text) {
+                    showError('Please enter some text to tokenize.');
+                    return;
+                }
+                
+                showLoader();
+                clearError();
+                
+                fetch('/tokenize', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ text, method }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    hideLoader();
+                    
+                    if (data.error) {
+                        showError(data.error);
+                        return;
+                    }
+                    
+                    // Update token count
+                    tokenCount.textContent = `${data.count} tokens found`;
+                    
+                    // Display tokens
+                    tokensContainer.innerHTML = '';
+                    data.tokens.forEach(token => {
+                        const tokenElement = document.createElement('span');
+                        tokenElement.classList.add('token');
+                        tokenElement.textContent = token;
+                        tokensContainer.appendChild(tokenElement);
+                    });
+                    
+                    // Switch to tokens tab
+                    document.querySelector('.tab-btn[data-tab="tokens"]').click();
+                })
+                .catch(error => {
+                    hideLoader();
+                    showError('An error occurred: ' + error.message);
+                });
+            });
+            
+            // Full analysis function
+            analyzeBtn.addEventListener('click', function() {
+                const text = inputText.value.trim();
+                
+                if (!text) {
+                    showError('Please enter some text to analyze.');
+                    return;
+                }
+                
+                showLoader();
+                clearError();
+                
+                // First tokenize
+                fetch('/tokenize', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ text, method: tokenizeMethod.value }),
+                })
+                .then(response => response.json())
+                .then(tokenData => {
+                    // Then analyze
+                    return fetch('/analyze', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ text }),
+                    }).then(response => {
+                        return { tokenData, analyzeResponse: response.json() };
+                    });
+                })
+                .then(async ({ tokenData, analyzeResponse }) => {
+                    const analyzeData = await analyzeResponse;
+                    hideLoader();
+                    
+                    if (tokenData.error) {
+                        showError(tokenData.error);
+                        return;
+                    }
+                    
+                    if (analyzeData.error) {
+                        showError(analyzeData.error);
+                    }
+                    
+                    // Update token count and display tokens
+                    tokenCount.textContent = `${tokenData.count} tokens found`;
+                    tokensContainer.innerHTML = '';
+                    tokenData.tokens.forEach(token => {
+                        const tokenElement = document.createElement('span');
+                        tokenElement.classList.add('token');
+                        tokenElement.textContent = token;
+                        tokensContainer.appendChild(tokenElement);
+                    });
+                    
+                    // Only update other tabs if analysis was successful
+                    if (!analyzeData.error) {
+                        // Update entities table
+                        entitiesTable.innerHTML = '';
+                        if (analyzeData.entities && analyzeData.entities.length > 0) {
+                            analyzeData.entities.forEach(entity => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${entity.text}</td>
+                                    <td>${entity.label}</td>
+                                `;
+                                entitiesTable.appendChild(row);
+                            });
+                        } else {
+                            const row = document.createElement('tr');
+                            row.innerHTML = '<td colspan="2">No entities found</td>';
+                            entitiesTable.appendChild(row);
+                        }
+                        
+                        // Update POS table
+                        posTable.innerHTML = '';
+                        if (analyzeData.pos_tags && analyzeData.pos_tags.length > 0) {
+                            analyzeData.pos_tags.forEach(tag => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${tag.text}</td>
+                                    <td>${tag.pos}</td>
+                                `;
+                                posTable.appendChild(row);
+                            });
+                        }
+                        
+                        // Update frequency table
+                        frequencyTable.innerHTML = '';
+                        if (analyzeData.word_frequency) {
+                            Object.entries(analyzeData.word_frequency).forEach(([word, freq]) => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${word}</td>
+                                    <td>${freq}</td>
+                                `;
+                                frequencyTable.appendChild(row);
+                            });
+                        }
+                    }
+                })
+                .catch(error => {
+                    hideLoader();
+                    showError('An error occurred: ' + error.message);
+                });
+            });
+            
+            // Helper functions
+            function showLoader() {
+                loader.style.display = 'block';
+            }
+            
+            function hideLoader() {
+                loader.style.display = 'none';
+            }
+            
+            function showError(message) {
+                errorMsg.textContent = message;
+            }
+            
+            function clearError() {
+                errorMsg.textContent = '';
+            }
+            
+            // Tokenize example text on page load
+            tokenizeBtn.click();
+        });
+    </script>
+</body>
+</html>
